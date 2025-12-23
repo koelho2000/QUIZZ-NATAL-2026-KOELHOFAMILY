@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>O Enigma de Natal - Koelho's Family</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Mountains+of+Christmas:wght@400;700&family=Poppins:wght@300;400;600&display=swap');
+
+        body {
+            background: radial-gradient(circle at center, #1a472a 0%, #0a210f 100%);
+            font-family: 'Poppins', sans-serif;
+            min-height: 100vh;
+            color: #f3e5ab;
+            overflow-x: hidden;
+        }
+
+        .font-christmas {
+            font-family: 'Mountains of Christmas', cursive;
+        }
+
+        .snow-container {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none; z-index: 0;
+        }
+
+        .snowflake {
+            position: absolute; background: white; border-radius: 50%;
+            opacity: 0.8; animation: fall linear infinite;
+        }
+
+        @keyframes fall {
+            0% { transform: translateY(-10vh) translateX(0); }
+            100% { transform: translateY(110vh) translateX(20px); }
+        }
+
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
+        }
+
+        .option-btn {
+            background: rgba(243, 229, 171, 0.1);
+            border: 2px solid rgba(243, 229, 171, 0.4);
+            color: #f3e5ab;
+            transition: all 0.2s ease;
+        }
+
+        .option-btn:hover {
+            background: rgba(243, 229, 171, 0.2);
+            border-color: #f3e5ab;
+            transform: translateY(-2px);
+        }
+
+        .option-btn.correct {
+            background: #22c55e !important;
+            border-color: #22c55e !important;
+            color: white;
+        }
+
+        .option-btn.wrong {
+            background: #ef4444 !important;
+            border-color: #ef4444 !important;
+            color: white;
+        }
+
+        .sidebar-item {
+            animation: slideIn 0.5s ease-out forwards;
+            border-left: 3px solid #f3e5ab;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(-20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        .shake {
+            animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both;
+        }
+
+        @keyframes shake {
+            10%, 90% { transform: translate3d(-1px, 0, 0); }
+            20%, 80% { transform: translate3d(2px, 0, 0); }
+            30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
+            40%, 60% { transform: translate3d(4px, 0, 0); }
+        }
+
+        #foundWordsList::-webkit-scrollbar { width: 5px; }
+        #foundWordsList::-webkit-scrollbar-track { background: transparent; }
+        #foundWordsList::-webkit-scrollbar-thumb { background: #f3e5ab44; border-radius: 10px; }
+
+        .present-bounce {
+            animation: bounce 2s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% {transform: translateY(0);}
+            40% {transform: translateY(-20px);}
+            60% {transform: translateY(-10px);}
+        }
+
+        .music-control {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 100;
+            background: rgba(243, 229, 171, 0.2);
+            border: 1px solid #f3e5ab;
+            padding: 10px;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        
+        .fade-out {
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 1s ease-out;
+        }
+
+        .countdown-box {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px dashed rgba(243, 229, 171, 0.4);
+            padding: 1rem 2rem;
+            border-radius: 1rem;
+        }
+
+        #startButton:disabled {
+            background: #4a5568;
+            color: #a0aec0;
+            cursor: not-allowed;
+            transform: scale(1);
+            box-shadow: none;
+            opacity: 0.6;
+        }
+    </style>
+</head>
+<body class="p-4 md:p-8 flex items-center justify-center">
+    <!-- Áudio de Fundo (Natal) -->
+    <audio id="bgMusic" loop>
+        <source src="https://github.com/koelho2000/QUIZZ-NATAL-2026-KOELHOFAMILY/raw/0dfc7c5eac7bac049625c9f5f2d9085882ac90ac/Mariah%20Carey%20-%20All%20I%20Want%20for%20Christmas%20Is%20You%20(Make%20My%20Wish%20Come%20True%20Edition).mp3" type="audio/mpeg">
+    </audio>
+
+    <!-- Áudio de Vitória (Final) -->
+    <audio id="victoryMusic">
+        <source src="https://github.com/koelho2000/QUIZZ-NATAL-2026-KOELHOFAMILY/raw/f7e3b90800f46ecb78aa8e460098006c7cc3dc8c/Enrique%20Iglesias%20-%20MOVE%20TO%20MIAMI%20(Official%20Video)%20ft.%20Pitbull.mp3" type="audio/mpeg">
+    </audio>
+
+    <!-- Capa Inicial -->
+    <div id="startScreen" class="fixed inset-0 z-[100] bg-[#0a210f] flex flex-col items-center justify-center text-center p-6">
+        <div class="mb-6 animate-pulse text-7xl md:text-8xl">🎄</div>
+        <h1 class="font-christmas text-6xl md:text-9xl text-white mb-2 tracking-widest">MISTÉRIO DE NATAL</h1>
+        <!-- Nomes Adicionados -->
+        <p class="text-2xl md:text-5xl text-white font-christmas mb-2">Sara, Sofia e Patrícia</p>
+        <p class="text-xl md:text-3xl text-yellow-200 font-light mb-8 italic opacity-80 font-christmas">For Koelho's Family</p>
+        
+        <!-- Contador -->
+        <div id="timerContainer" class="countdown-box mb-10">
+            <p class="text-xs uppercase tracking-widest mb-2 opacity-70 text-white">Disponível em:</p>
+            <div id="countdown" class="text-3xl md:text-5xl font-mono font-bold text-[#f3e5ab]">
+                --d --h --m --s
+            </div>
+        </div>
+
+        <button id="startButton" onclick="startGame()" disabled class="bg-[#f3e5ab] text-[#1a472a] px-16 py-6 rounded-full font-bold text-2xl uppercase hover:scale-110 transition-transform shadow-[0_0_30px_rgba(243,229,171,0.3)]">
+            Bora Jogar!!!
+        </button>
+        <p id="lockMessage" class="mt-4 text-sm opacity-60 text-white italic">O presente só pode ser aberto a 25/12 às 09:00!</p>
+    </div>
+
+    <!-- Botão de Música -->
+    <button class="music-control hidden" id="musicToggle" title="Ligar/Desligar Música">
+        <svg id="musicOnIcon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#f3e5ab" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5L6 9H2v6h4l5 4V5z"></path><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>
+        <svg id="musicOffIcon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#f3e5ab" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="hidden"><path d="M11 5L6 9H2v6h4l5 4V5z"></path><line x1="23" y1="9" x2="17" y2="15"></line><line x1="17" y1="9" x2="23" y2="15"></line></svg>
+    </button>
+
+    <div class="snow-container" id="snowContainer"></div>
+
+    <!-- Interface do Jogo -->
+    <div id="mainGameUI" class="hidden opacity-0 transition-opacity duration-1000 relative z-10 w-full max-w-6xl grid grid-cols-1 lg:grid-cols-4 gap-8">
+        
+        <!-- Barra Lateral -->
+        <aside class="lg:col-span-1 glass-panel rounded-3xl p-6 flex flex-col h-[300px] lg:h-auto order-2 lg:order-1">
+            <h3 class="font-christmas text-3xl mb-4 text-center border-b border-white/10 pb-2">Descobertas</h3>
+            <div id="foundWordsList" class="flex-grow overflow-y-auto space-y-2 pr-2">
+                <p id="emptyMsg" class="text-sm opacity-40 italic text-center py-10">Resolve o primeiro enigma...</p>
+            </div>
+        </aside>
+
+        <!-- Área Principal -->
+        <main class="lg:col-span-3 space-y-6 order-1 lg:order-2">
+            <div id="gameCard" class="glass-panel rounded-3xl p-8 text-center transition-all duration-500">
+                <header class="mb-8">
+                    <h1 class="font-christmas text-5xl md:text-7xl mb-4 tracking-tighter">Mistério de Natal</h1>
+                    <div class="w-full bg-black/30 h-3 rounded-full overflow-hidden">
+                        <div id="progressBar" class="h-full bg-gradient-to-r from-yellow-600 to-yellow-200 transition-all duration-700" style="width: 0%"></div>
+                    </div>
+                    <p id="levelCounter" class="text-sm mt-3 font-semibold tracking-widest uppercase opacity-60">Carregando...</p>
+                </header>
+
+                <section id="questionArea" class="max-w-2xl mx-auto">
+                    <div id="riddleIcon" class="text-7xl mb-6">📅</div>
+                    <p id="riddleText" class="text-xl md:text-2xl font-light leading-relaxed mb-10 min-h-[80px]">
+                        Preparando o mistério...
+                    </p>
+
+                    <div id="optionsContainer" class="grid grid-cols-1 md:grid-cols-3 gap-4"></div>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal de Vitória / Surpresa -->
+    <div id="victoryScreen" class="hidden fixed inset-0 z-50 bg-[#0a210f]/95 flex flex-col items-center justify-center text-center p-8 backdrop-blur-md">
+        <div id="surpriseClosed">
+            <div class="text-9xl mb-8 present-bounce">🎁</div>
+            <h2 class="font-christmas text-6xl md:text-8xl text-white mb-6 tracking-wide">Surpresa!</h2>
+            <button onclick="revealSurprise()" class="bg-[#f3e5ab] text-[#1a472a] px-12 py-5 rounded-full font-bold text-xl uppercase hover:scale-110 transition-transform shadow-2xl">
+                Abre e descobre
+            </button>
+        </div>
+
+        <div id="surpriseOpened" class="hidden animate-in fade-in duration-1000">
+            <div class="text-9xl mb-8">🎄🎅✨</div>
+            <h2 class="font-christmas text-7xl md:text-9xl text-yellow-200 mb-6 tracking-tighter leading-none">Feliz Natal!</h2>
+            <p class="text-2xl md:text-3xl text-white max-w-2xl font-light leading-relaxed">
+                Concluíste toda a sequência mágica para a Koelho's Family. Que esta viagem seja repleta de alegria!
+            </p>
+            <p class="text-lg text-yellow-100 mt-4 font-christmas">Para: Sara, Sofia e Patrícia</p>
+            <button onclick="location.reload()" class="mt-12 text-[#f3e5ab] border border-[#f3e5ab] px-8 py-3 rounded-full font-medium hover:bg-[#f3e5ab] hover:text-[#1a472a] transition-all">
+                Recomeçar
+            </button>
+        </div>
+    </div>
+
+    <script>
+        const riddles = [
+            { q: "Sou o mês das luzes, do frio e da partilha. O calendário termina comigo. Quem sou?", a: "Dezembro", options: ["Janeiro", "Dezembro", "Novembro"], icon: "📅" },
+            { q: "Um número sagrado no inverno. É o dia em que o sapatinho se enche junto à lareira. Que dia é?", a: "dia 25", options: ["dia 24", "dia 1", "dia 25"], icon: "✨" },
+            { q: "Nem no sótão, nem no primeiro andar. É onde a porta da rua se abre e o tapete nos recebe. Onde estamos?", a: "Piso 0", options: ["Piso 0", "Piso 1", "Cave"], icon: "🏢" },
+            { q: "As velas estão acesas, os pratos postos e o peru fumega no centro da mesa. Que divisão é esta?", a: "Sala Jantar", options: ["Cozinha", "Sala Jantar", "Quarto"], icon: "🍽️" },
+            { q: "Tenho agulhas que não cosem e uma estrela que nunca cai do céu. O que sou?", a: "Árvore", options: ["Pinheiro", "Árvore", "Guirlanda"], icon: "🎄" },
+            { q: "Seja por carris, por estrada ou por ar, sou o que te leva até aos braços de quem amas. O que sou?", a: "Transporte", options: ["Caminhada", "Transporte", "Mensagem"], icon: "🚂" },
+            { q: "Deslizo sobre carris de ferro, apitando por montes e vales com carruagens cheias de sonhos. O que sou?", a: "Comboio", options: ["Comboio", "Autocarro", "Avião"], icon: "🚂" },
+            { q: "Um pequeno refúgio privado dentro de um grande navio ou comboio. Onde descansas durante o trajeto?", a: "Cabine", options: ["Cabine", "Convés", "Estação"], icon: "🚢" },
+            { q: "Fazer as malas, conferir os bilhetes e partir com o coração cheio. Qual é o nome deste ato?", a: "Viagem", options: ["Passeio", "Regresso", "Viagem"], icon: "✈️" }
+        ];
+
+        let currentLevel = 0;
+        let isProcessing = false;
+        const bgMusic = document.getElementById('bgMusic');
+        const victoryMusic = document.getElementById('victoryMusic');
+
+        // Configuração do Temporizador (25 de Dezembro, 09h)
+        const targetDate = new Date("December 25, 2025 09:00:00").getTime();
+
+        function updateTimer() {
+            const now = new Date().getTime();
+            const distance = targetDate - now;
+
+            const btn = document.getElementById('startButton');
+            const countdownEl = document.getElementById('countdown');
+            const lockMsg = document.getElementById('lockMessage');
+
+            if (distance < 0) {
+                countdownEl.innerText = "CHEGOU O NATAL!";
+                btn.disabled = false;
+                lockMsg.innerText = "O mistério está desbloqueado!";
+                lockMsg.classList.add('text-green-400');
+                clearInterval(timerInterval);
+                return;
+            }
+
+            const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+            countdownEl.innerText = `${days}d ${hours}h ${minutes}m ${seconds}s`;
+        }
+
+        const timerInterval = setInterval(updateTimer, 1000);
+        updateTimer();
+
+        function startGame() {
+            const startScreen = document.getElementById('startScreen');
+            const mainGameUI = document.getElementById('mainGameUI');
+            const musicToggle = document.getElementById('musicToggle');
+
+            startScreen.classList.add('fade-out');
+            setTimeout(() => {
+                startScreen.style.display = 'none';
+                mainGameUI.classList.remove('hidden');
+                setTimeout(() => mainGameUI.classList.add('opacity-100'), 50);
+                musicToggle.classList.remove('hidden');
+                
+                bgMusic.play().catch(() => {});
+                updateMusicIcons();
+            }, 1000);
+            
+            loadLevel();
+        }
+
+        function toggleMusic() {
+            const activeMusic = !victoryMusic.paused || (document.getElementById('surpriseClosed').classList.contains('hidden') && !document.getElementById('victoryScreen').classList.contains('hidden')) ? victoryMusic : bgMusic;
+            
+            if (activeMusic.paused) {
+                activeMusic.play();
+            } else {
+                activeMusic.pause();
+            }
+            updateMusicIcons();
+        }
+
+        function updateMusicIcons() {
+            const on = document.getElementById('musicOnIcon');
+            const off = document.getElementById('musicOffIcon');
+            const activeMusic = (victoryMusic.currentTime > 0 && !victoryMusic.paused) || (bgMusic.currentTime > 0 && !bgMusic.paused);
+            
+            if (!activeMusic) {
+                on.classList.add('hidden');
+                off.classList.remove('hidden');
+            } else {
+                on.classList.remove('hidden');
+                off.classList.add('hidden');
+            }
+        }
+
+        document.getElementById('musicToggle').onclick = toggleMusic;
+
+        function createSnow() {
+            const container = document.getElementById('snowContainer');
+            for (let i = 0; i < 60; i++) {
+                const flake = document.createElement('div');
+                flake.className = 'snowflake';
+                const size = Math.random() * 4 + 2 + 'px';
+                flake.style.width = size;
+                flake.style.height = size;
+                flake.style.left = Math.random() * 100 + 'vw';
+                flake.style.opacity = Math.random();
+                flake.style.animationDuration = Math.random() * 3 + 4 + 's';
+                flake.style.animationDelay = Math.random() * 5 + 's';
+                container.appendChild(flake);
+            }
+        }
+
+        function updateSidebar(word) {
+            const list = document.getElementById('foundWordsList');
+            const emptyMsg = document.getElementById('emptyMsg');
+            if (emptyMsg) emptyMsg.remove();
+            const item = document.createElement('div');
+            item.className = 'sidebar-item bg-white/5 p-3 rounded-lg text-sm font-medium flex justify-between items-center';
+            item.innerHTML = `<span>${word}</span> <span class="text-xs text-green-400">✓</span>`;
+            list.prepend(item);
+        }
+
+        function loadLevel() {
+            if (currentLevel >= riddles.length) {
+                showVictory();
+                return;
+            }
+            const riddle = riddles[currentLevel];
+            const riddleText = document.getElementById('riddleText');
+            const riddleIcon = document.getElementById('riddleIcon');
+            const levelCounter = document.getElementById('levelCounter');
+            const progressBar = document.getElementById('progressBar');
+            const optionsContainer = document.getElementById('optionsContainer');
+
+            riddleText.style.opacity = '0';
+            optionsContainer.style.opacity = '0';
+
+            setTimeout(() => {
+                riddleText.innerText = riddle.q;
+                riddleIcon.innerText = riddle.icon;
+                levelCounter.innerText = `Nível ${currentLevel + 1} de ${riddles.length}`;
+                progressBar.style.width = `${(currentLevel / riddles.length) * 100}%`;
+                optionsContainer.innerHTML = '';
+                riddle.options.forEach(opt => {
+                    const btn = document.createElement('button');
+                    btn.className = 'option-btn py-4 px-2 rounded-xl font-semibold shadow-lg';
+                    btn.innerText = opt;
+                    btn.onclick = () => handleChoice(btn, opt);
+                    optionsContainer.appendChild(btn);
+                });
+                riddleText.style.opacity = '1';
+                optionsContainer.style.opacity = '1';
+                isProcessing = false;
+            }, 400);
+        }
+
+        function handleChoice(button, selected) {
+            if (isProcessing) return;
+            const riddle = riddles[currentLevel];
+            if (selected === riddle.a) {
+                isProcessing = true;
+                button.classList.add('correct');
+                updateSidebar(riddle.a);
+                setTimeout(() => {
+                    currentLevel++;
+                    loadLevel();
+                }, 800);
+            } else {
+                button.classList.add('wrong');
+                document.getElementById('gameCard').classList.add('shake');
+                setTimeout(() => {
+                    document.getElementById('gameCard').classList.remove('shake');
+                    button.classList.remove('wrong');
+                }, 500);
+            }
+        }
+
+        function showVictory() {
+            document.getElementById('progressBar').style.width = "100%";
+            setTimeout(() => document.getElementById('victoryScreen').classList.remove('hidden'), 500);
+        }
+
+        function revealSurprise() {
+            bgMusic.pause();
+            document.getElementById('surpriseClosed').classList.add('hidden');
+            document.getElementById('surpriseOpened').classList.remove('hidden');
+            victoryMusic.play().catch(e => console.log("Erro ao tocar música de vitória:", e));
+            updateMusicIcons();
+        }
+
+        window.onload = createSnow;
+    </script>
+</body>
+</html>
