@@ -164,6 +164,7 @@
             </div>
         </div>
 
+        <!-- Botão desativado até à data alvo -->
         <button id="startButton" onclick="startGame()" disabled class="bg-[#f3e5ab] text-[#1a472a] px-16 py-6 rounded-full font-bold text-2xl uppercase hover:scale-110 transition-transform shadow-[0_0_30px_rgba(243,229,171,0.3)]">
             Bora Jogar!!!
         </button>
@@ -171,7 +172,7 @@
     </div>
 
     <!-- Botão de Música -->
-    <button class="music-control hidden" id="musicToggle" title="Ligar/Desligar Música">
+    <button class="music-control" id="musicToggle" title="Ligar/Desligar Música">
         <svg id="musicOnIcon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#f3e5ab" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5L6 9H2v6h4l5 4V5z"></path><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>
         <svg id="musicOffIcon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#f3e5ab" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="hidden"><path d="M11 5L6 9H2v6h4l5 4V5z"></path><line x1="23" y1="9" x2="17" y2="15"></line><line x1="17" y1="9" x2="23" y2="15"></line></svg>
     </button>
@@ -253,7 +254,7 @@
         const bgMusic = document.getElementById('bgMusic');
         const victoryMusic = document.getElementById('victoryMusic');
 
-        // Configuração do Temporizador (25 de Dezembro, 09h)
+        // Configuração do Temporizador (Bloqueio real)
         const targetDate = new Date("December 25, 2025 09:00:00").getTime();
 
         function updateTimer() {
@@ -287,16 +288,15 @@
         function startGame() {
             const startScreen = document.getElementById('startScreen');
             const mainGameUI = document.getElementById('mainGameUI');
-            const musicToggle = document.getElementById('musicToggle');
 
             startScreen.classList.add('fade-out');
             setTimeout(() => {
                 startScreen.style.display = 'none';
                 mainGameUI.classList.remove('hidden');
                 setTimeout(() => mainGameUI.classList.add('opacity-100'), 50);
-                musicToggle.classList.remove('hidden');
                 
-                bgMusic.play().catch(() => {});
+                // Tentar tocar música
+                bgMusic.play().catch(e => console.log("Som aguarda interação."));
                 updateMusicIcons();
             }, 1000);
             
@@ -420,7 +420,7 @@
             bgMusic.pause();
             document.getElementById('surpriseClosed').classList.add('hidden');
             document.getElementById('surpriseOpened').classList.remove('hidden');
-            victoryMusic.play().catch(e => console.log("Erro ao tocar música de vitória:", e));
+            victoryMusic.play().catch(e => console.log("Erro som vitória."));
             updateMusicIcons();
         }
 
